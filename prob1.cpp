@@ -1,46 +1,62 @@
 #include <iostream>
+#include <sstream>
 #include <string>
 #include "stack.h"
 
 using namespace std;
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
-    int n;
-    if (!(cin >> n)) return 0;
-
     Stack s;
     init(&s);
 
-    for (int i = 0; i < n; i++) {
-        string token;
-        cin >> token;
-        if (token == "+" || token == "-" || token == "*" || token == "/") {
-            int b = peek(&s); 
-            pop(&s);
-            int a = peek(&s); 
-            pop(&s);
+    int n;
+    cin >> n;
+    cin.ignore();
 
-            int hasil = 0;
-            if (token == "+")      hasil = a + b;
-            else if (token == "-") hasil = a - b;
-            else if (token == "*") hasil = a * b;
-            else if (token == "/") {
-                if (b != 0) hasil = a / b;
+    string line;
+    getline(cin, line);
+
+    stringstream ss(line);
+    string token;
+
+    try {
+        while (ss >> token) {
+            if (token == "+" || token == "-" || token == "*" || token == "/") {
+                if (isEmpty(&s)) throw runtime_error("Operand kurang");
+                int b = peek(&s); pop(&s);
+
+                if (isEmpty(&s)) throw runtime_error("Operand kurang");
+                int a = peek(&s); pop(&s);
+
+                int result;
+
+                if (token == "+") result = a + b;
+                else if (token == "-") result = a - b;
+                else if (token == "*") result = a * b;
+                else {
+                    if (b == 0) throw runtime_error("Pembagian nol");
+                    result = a / b;
+                }
+
+                push(&s, result);
             }
-            
-            push(&s, hasil);
-        } 
-        else {
-            int angka = stoi(token);
-            push(&s, angka);
+            else {
+                int num = stoi(token);
+                push(&s, num);
+            }
         }
-    }
 
-    if (!isEmpty(&s)) {
-        cout << peek(&s) << endl;
+        if (isEmpty(&s)) throw runtime_error("Stack kosong");
+
+        int hasil = peek(&s);
+        pop(&s);
+
+        if (!isEmpty(&s)) throw runtime_error("Ekspresi tidak valid");
+
+        cout << hasil << endl;
+
+    } catch (const exception& e) {
+        cout << "Error: " << e.what() << endl;
     }
 
     return 0;
